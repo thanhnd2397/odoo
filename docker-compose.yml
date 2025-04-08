@@ -1,0 +1,35 @@
+name: odoo-project
+services:
+  database:
+    build:
+      context: .
+      dockerfile: container/database/Dockerfile
+    container_name: odoo-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 12345678
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build:
+      context: .
+      dockerfile: container/odoo/Dockerfile
+    container_name: odoo-web
+    depends_on:
+      - database
+    ports:
+      - "8069:8069"
+    volumes:
+      - ./odoo:/opt/odoo/odoo
+      - ./custom-addons:/mnt/custom-addons
+      - ./odoo.conf:/etc/odoo/odoo.conf
+    environment:
+      HOST: db
+      USER: root
+      PASSWORD: 12345678
+
+volumes:
+  odoo-db-data:
