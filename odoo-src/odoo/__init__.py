@@ -74,7 +74,7 @@ if hasattr(time, 'tzset'):
 # because some pdf won't fit into allocated memory
 # https://docs.python.org/3/library/zlib.html#zlib.decompressobj
 # ----------------------------------------------------------
-import PyPDF2
+from pypdf import PdfReader
 
 try:
     import zlib
@@ -83,10 +83,12 @@ try:
         zobj = zlib.decompressobj()
         return zobj.decompress(data)
 
-    import PyPDF2.filters  # needed after PyPDF2 2.0.0 and before 2.11.0
-    PyPDF2.filters.decompress = _decompress
+    # Nếu bạn thật sự cần ghi đè decompress, có thể làm:
+    import pypdf.filters
+    pypdf.filters.decompress = _decompress
+
 except ImportError:
-    pass # no fix required
+    pass  # no fix required
 
 # ---------------------------------------------------------
 # some charset are known by Python under a different name

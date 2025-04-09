@@ -1,34 +1,30 @@
 FROM python:3.10
 
-# System dependencies
-RUN apt-get update && apt-get install -y \
-    git wget xfonts-75dpi xfonts-base \
-    libpq-dev libxml2-dev libxslt1-dev \
-    libjpeg-dev libldap2-dev libsasl2-dev \
-    libffi-dev libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install wkhtmltopdf (patched version)
-RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb && \
-    apt-get update && apt-get install -y ./wkhtmltox_0.12.6-1.buster_amd64.deb && \
-    rm wkhtmltox_0.12.6-1.buster_amd64.deb
-
-# Create odoo user
-RUN useradd -m -d /opt/odoo -U -r -s /bin/bash odoo
-
-# Copy Odoo source code (adjust path depending on build context)
-COPY ../.. /opt/odoo
+# Làm việc trong thư mục Odoo
 WORKDIR /opt/odoo
 
-# Install Python dependencies
-RUN pip install --upgrade pip && \
-    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+# Cài đặt thư viện hệ thống cần thiết
+RUN apt-get update && apt-get install -y \
+    git \
+    build-essential \
+    libpq-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
+    libsasl2-dev \
+    libldap2-dev \
+    libssl-dev \
+    libjpeg-dev \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set ownership
-RUN chown -R odoo:odoo /opt/odoo
+# Cài các gói Python cần thiết
+COPY ../../odoo-src/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt || true
+RUN pip install pypdf
 
-# Switch to non-root user
-USER odoo
+# Copy file cấu hình
+COPY ../../odoo.conf ./odoo.conf
 
-# Run Odoo
-CMD ["python3", "odoo-bin", "-c", "/etc/odoo/odoo.conf"]
+# Lệnh chạy chính
+CMD ["python", "odoo-src/odoo-bin", "-c", "odoo.conf"]

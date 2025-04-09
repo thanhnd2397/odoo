@@ -2,7 +2,7 @@ name: odoo-project
 services:
   database:
     build:
-      context: ..
+      context: .
       dockerfile: container/database/Dockerfile
     container_name: odoo-db
     environment:
@@ -15,21 +15,17 @@ services:
 
   web:
     build:
-      context: ..
+      context: .
       dockerfile: container/admin/Dockerfile
     container_name: odoo-web
     depends_on:
       - database
     ports:
-      - "8069:8069"
+      - 8069:8069
     volumes:
-      - ./odoo-src:/opt/odoo/odoo
-#      - ./custom-addons:/mnt/custom-addons
-    command: ["./odoo-bin", "-c", "/etc/odoo/odoo.conf"]
-    environment:
-      HOST: database
-      USER: root
-      PASSWORD: 12345678
-
+      - ./odoo-src:/opt/odoo/odoo-src
+      - ./odoo.conf:/opt/odoo/odoo.conf
+    working_dir: /opt/odoo
+    command: ["python3", "odoo-src/odoo-bin", "-c", "odoo.conf"]
 volumes:
   odoo-db-data:
